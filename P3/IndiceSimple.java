@@ -126,7 +126,7 @@ public class IndiceSimple {
 
             for (String author : authors) {
                 System.out.println(author);
-                doc.add(new StoredField("Author", author));
+                doc.add(new TextField("Author", author,Field.Store.YES));
             }
 
             doc.add(new TextField("Title", subdoc[HEADERS.Title], Field.Store.YES));
