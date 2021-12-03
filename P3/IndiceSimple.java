@@ -42,7 +42,6 @@ public class IndiceSimple {
     private IndexWriter writer;
     private DirectoryTaxonomyWriter facet_writer;
 
-
     public static void main(String[] args) throws IOException, CsvException {
 
         Analyzer analyzer = new StandardAnalyzer();
@@ -52,7 +51,6 @@ public class IndiceSimple {
         baseline.configurarIndice(analyzer, similarity);
         FacetsConfig fconfig = facet_index.configurarIndice();
 
- 
         File[] files;
         File directory = new File(args[0]);
         files = directory.listFiles(new FileFilter() {
@@ -63,9 +61,8 @@ public class IndiceSimple {
         });
 
         for (File file : files) {
-            baseline.indexarDocumentos(file,fconfig);
+            baseline.indexarDocumentos(file, fconfig);
         }
-        
 
         baseline.close();
     }
@@ -89,14 +86,13 @@ public class IndiceSimple {
     public FacetsConfig configurarIndice() throws IOException {
         FacetsConfig fconfig = new FacetsConfig();
         Directory dir = FSDirectory.open(Paths.get("./P3/facets"));
-        
-        facet_writer= new DirectoryTaxonomyWriter(dir);
+
+        facet_writer = new DirectoryTaxonomyWriter(dir);
         fconfig.setMultiValued("Author", true);
         fconfig.setMultiValued("Keyword", true);
         fconfig.setMultiValued("Year", true);
         return fconfig;
     }
-    
 
     /*
      * public static List<String[]> leerCsv(Reader reader) throws IOException,
@@ -108,7 +104,8 @@ public class IndiceSimple {
 
     // Método para recoger la informacion de indexacion de los documentos, y
     // añadirlos al indice.
-    public void indexarDocumentos(File file,FacetsConfig fConfig ) throws FileNotFoundException, IOException, CsvException {
+    public void indexarDocumentos(File file, FacetsConfig fConfig)
+            throws FileNotFoundException, IOException, CsvException {
         CSVReader reader = new CSVReader(new FileReader(file.getAbsoluteFile()));
         String subdoc[];
         reader.readNext(); // leemos la linea de headers sin recogerla.
@@ -130,10 +127,9 @@ public class IndiceSimple {
             }
 
             doc.add(new TextField("Title", subdoc[HEADERS.Title], Field.Store.YES));
-            doc.add(new TextField("Content", subdoc[HEADERS.Abstract], Field.Store.YES));           
-           
+            doc.add(new TextField("Content", subdoc[HEADERS.Abstract], Field.Store.YES));
 
-            //INCLUIMOS LOS CAMPOS DE INDEXACION DE LAS FACETAS
+            // INCLUIMOS LOS CAMPOS DE INDEXACION DE LAS FACETAS
 
             final String[] keywords = subdoc[HEADERS.AuthorKeywords].split("; ");
             for (String keyword : keywords) {
@@ -141,9 +137,8 @@ public class IndiceSimple {
             }
             doc.add(new FacetField("Year", subdoc[HEADERS.Year]));
 
-    
-
-            writer.addDocument(fConfig.build(facet_writer,doc));
+            System.out.println(facet_writer);
+            writer.addDocument(fConfig.build(facet_writer, doc));
 
         }
     }
