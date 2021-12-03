@@ -125,19 +125,28 @@ public class IndiceSimple {
             // INCLUIMOS LOS CAMPOS DE INDEXACIÓN
 
             final String[] authors = subdoc[HEADERS.Author].split(", ");
+            final String[] keywords = subdoc[HEADERS.AuthorKeywords].split("; ");
+
             for (String author : authors) {
+                System.out.println(author);
                 doc.add(new StringField("Author", author, Field.Store.YES));
             }
 
             doc.add(new TextField("Title", subdoc[HEADERS.Title], Field.Store.YES));
-            doc.add(new TextField("Content", subdoc[HEADERS.Abstract], Field.Store.YES));           
-           
+            
+            for (String keyword : keywords) {
+                doc.add(new StoredField("Keyword", keyword));
 
+            }     
+            
+            doc.add(new StringField("EID", subdoc[HEADERS.EID],Field.Store.YES))
+           
             //INCLUIMOS LOS CAMPOS DE INDEXACION DE LAS FACETAS
 
-            final String[] keywords = subdoc[HEADERS.AuthorKeywords].split("; ");
+            ;
             for (String keyword : keywords) {
                 doc.add(new FacetField("Keyword", keyword));
+
             }
             doc.add(new FacetField("Year", subdoc[HEADERS.Year]));
 
