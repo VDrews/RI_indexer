@@ -50,7 +50,7 @@ public class IndiceSimple {
         IndiceSimple baseline = new IndiceSimple();
         IndiceSimple facet_index = new IndiceSimple();
         baseline.configurarIndice(analyzer, similarity);
-        FacetsConfig fconfig = facet_index.configurarIndice();
+        FacetsConfig fconfig= baseline.configurarIndice();
 
  
         File[] files;
@@ -142,7 +142,6 @@ public class IndiceSimple {
             doc.add(new FacetField("Year", subdoc[HEADERS.Year]));
 
     
-
             writer.addDocument(fConfig.build(facet_writer,doc));
 
         }
