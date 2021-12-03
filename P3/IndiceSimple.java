@@ -17,6 +17,8 @@ import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.opencsv.exceptions.CsvException;
 
+import org.apache.lucene.facet.*;
+import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyWriter;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -38,14 +40,18 @@ public class IndiceSimple {
     String docPath = "./datasets";
     boolean create = true;
     private IndexWriter writer;
+    private DirectoryTaxonomyWriter facet_writer;
+
 
     public static void main(String[] args) throws IOException, CsvException {
 
         Analyzer analyzer = new StandardAnalyzer();
         Similarity similarity = new ClassicSimilarity();
         IndiceSimple baseline = new IndiceSimple();
-
+        IndiceSimple facet_index = new IndiceSimple();
         baseline.configurarIndice(analyzer, similarity);
+        FacetsConfig fconfig = facet_index.configurarIndice();
+
  
         File[] files;
         File directory = new File(args[0]);
@@ -57,7 +63,7 @@ public class IndiceSimple {
         });
 
         for (File file : files) {
-            baseline.indexarDocumentos(file);
+            baseline.indexarDocumentos(file,fconfig);
         }
         
 
@@ -79,6 +85,18 @@ public class IndiceSimple {
         return "";
     }
 
+    // Método para configurar el indice de las facetas
+    public FacetsConfig configurarIndice() throws IOException {
+        FacetsConfig fconfig = new FacetsConfig();
+        Directory dir = FSDirectory.open(Paths.get("./P3/facets"));
+        
+        facet_writer= new DirectoryTaxonomyWriter(dir);
+        fconfig.setMultiValued("Author", true);
+        fconfig.setMultiValued("Year", true);
+        return fconfig;
+    }
+    
+
     /*
      * public static List<String[]> leerCsv(Reader reader) throws IOException,
      * CsvException { CSVReader csvReader = new
@@ -89,7 +107,7 @@ public class IndiceSimple {
 
     // Método para recoger la informacion de indexacion de los documentos, y
     // añadirlos al indice.
-    public void indexarDocumentos(File file) throws FileNotFoundException, IOException, CsvException {
+    public void indexarDocumentos(File file,FacetsConfig fConfig ) throws FileNotFoundException, IOException, CsvException {
         CSVReader reader = new CSVReader(new FileReader(file.getAbsoluteFile()));
         String subdoc[];
         reader.readNext(); // leemos la linea de headers sin recogerla.
@@ -103,43 +121,28 @@ public class IndiceSimple {
             System.out.println(subdoc[HEADERS.Abstract]);
             System.out.println(subdoc[HEADERS.AuthorKeywords]);
 
-            // Los autores deberian dividirse
-            // doc.add(new StringField("Authors", subdoc[HEADERS.Author], Field.Store.YES));
+            // INCLUIMOS LOS CAMPOS DE INDEXACIÓN
+
             final String[] authors = subdoc[HEADERS.Author].split(", ");
             for (String author : authors) {
                 doc.add(new StringField("Author", author, Field.Store.YES));
             }
 
+            doc.add(new TextField("Title", subdoc[HEADERS.Title], Field.Store.YES));
+            doc.add(new TextField("Content", subdoc[HEADERS.Abstract], Field.Store.YES));           
+           
+            
+            //INCLUIMOS LOS CAMPOS DE INDEXACION DE LAS FACETAS
+
             final String[] keywords = subdoc[HEADERS.AuthorKeywords].split("; ");
             for (String keyword : keywords) {
-                doc.add(new TextField("Keyword", keyword, Field.Store.YES));
+                doc.add(new FacetField("Keyword", keyword));
             }
+            doc.add(new FacetField("Year", subdoc[HEADERS.Year]));
 
-            doc.add(new TextField("Title", subdoc[HEADERS.Title], Field.Store.YES));
-            doc.add(new IntPoint("Year", Integer.parseInt(subdoc[HEADERS.Year])));
-            doc.add(new StoredField("Year", Integer.parseInt(subdoc[HEADERS.Year])));
-            doc.add(new TextField("Abstract", subdoc[HEADERS.Abstract], Field.Store.YES));
-            doc.add(new TextField("Keywords", subdoc[HEADERS.AuthorKeywords], Field.Store.YES));
-            // doc.add(new IntPoint("PageCount",)
-            // Integer.parseInt(subdoc[HEADERS.PageCount])));
-            // doc.add(new
-            // StoredField("PageCount",Integer.parseInt(subdoc[HEADERS.PageCount])));
-            // Integer start = ?;
-            // Integer end = ?;
+    
 
-            // String aux = cadena.substring(start, end);
-
-            // doc.add(new IntPoint("ID", valor));
-            // doc.add(new StoredField("ID", valor));
-
-            // start = ...;
-            // end = ...;
-
-            // String cuerpo = cadena.substring(start, end);
-
-            // doc.add(new TextField("Body", cuerpo, Field.Store.YES));
-
-            writer.addDocument(doc);
+            writer.addDocument(fConfig.build(facet_writer,doc));
 
         }
     }
@@ -149,8 +152,10 @@ public class IndiceSimple {
         try {
             writer.commit();
             writer.close();
+            facet_writer.commit();
+            facet_writer.close();
         } catch (IOException e) {
-            System.out.println("¡Error cerrando el indice!");
+            System.out.println("¡Error cerrando el indice principal o el indice de las facetas!");
         }
 
     }

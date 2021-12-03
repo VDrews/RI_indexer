@@ -357,6 +357,7 @@ public class DocumentAnalyzer {
 
       break;
       //EdgeNGramFilter
+      /*
       case 6:
       filterName="EdgeNGramFilter";
       analyzer = new Analyzer() {
@@ -445,6 +446,7 @@ public class DocumentAnalyzer {
         }
         };
       break;
+      */
       default:
       analyzer = new StandardAnalyzer();
       break;
