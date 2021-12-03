@@ -49,7 +49,7 @@ public class IndiceSimple {
         IndiceSimple baseline = new IndiceSimple();
         IndiceSimple facet_index = new IndiceSimple();
         baseline.configurarIndice(analyzer, similarity);
-        FacetsConfig fconfig = facet_index.configurarIndice();
+        FacetsConfig fconfig = baseline.configurarIndice();
 
         File[] files;
         File directory = new File(args[0]);
@@ -113,11 +113,11 @@ public class IndiceSimple {
             // new FileReader(fichero)
             Document doc = new Document();
 
-            System.out.println(subdoc[HEADERS.AuthorsID]);
-            System.out.println(subdoc[HEADERS.Title]);
-            System.out.println(subdoc[HEADERS.Year]);
-            System.out.println(subdoc[HEADERS.Abstract]);
-            System.out.println(subdoc[HEADERS.AuthorKeywords]);
+            // System.out.println(subdoc[HEADERS.AuthorsID]);
+            // System.out.println(subdoc[HEADERS.Title]);
+            // System.out.println(subdoc[HEADERS.Year]);
+            // System.out.println(subdoc[HEADERS.Abstract]);
+            // System.out.println(subdoc[HEADERS.AuthorKeywords]);
 
             // INCLUIMOS LOS CAMPOS DE INDEXACIÓN
 
@@ -133,11 +133,12 @@ public class IndiceSimple {
 
             final String[] keywords = subdoc[HEADERS.AuthorKeywords].split("; ");
             for (String keyword : keywords) {
-                doc.add(new FacetField("Keyword", keyword));
+                if (keyword.length() != 0)
+                    doc.add(new FacetField("Keyword", keyword));
             }
             doc.add(new FacetField("Year", subdoc[HEADERS.Year]));
 
-            System.out.println(facet_writer);
+            // System.out.println(facet_writer);
             writer.addDocument(fConfig.build(facet_writer, doc));
 
         }
