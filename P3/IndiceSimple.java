@@ -92,6 +92,7 @@ public class IndiceSimple {
         
         facet_writer= new DirectoryTaxonomyWriter(dir);
         fconfig.setMultiValued("Author", true);
+        fconfig.setMultiValued("Keyword", true);
         fconfig.setMultiValued("Year", true);
         return fconfig;
     }
@@ -131,7 +132,7 @@ public class IndiceSimple {
             doc.add(new TextField("Title", subdoc[HEADERS.Title], Field.Store.YES));
             doc.add(new TextField("Content", subdoc[HEADERS.Abstract], Field.Store.YES));           
            
-            
+
             //INCLUIMOS LOS CAMPOS DE INDEXACION DE LAS FACETAS
 
             final String[] keywords = subdoc[HEADERS.AuthorKeywords].split("; ");
