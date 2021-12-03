@@ -139,6 +139,7 @@ public class IndiceSimple {
 
             }     
             
+            doc.add(new TextField("Content", subdoc[HEADERS.Abstract], Field.Store.YES));
             doc.add(new StringField("EID", subdoc[HEADERS.EID],Field.Store.YES))
            
             //INCLUIMOS LOS CAMPOS DE INDEXACION DE LAS FACETAS
