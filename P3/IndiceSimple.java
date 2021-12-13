@@ -8,7 +8,9 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,26 +54,35 @@ public class IndiceSimple {
         FacetsConfig fconfig = baseline.configurarIndice();
 
         File[] files;
-        File directory = new File(args[0]);
-        files = directory.listFiles(new FileFilter() {
-            @Override
-            public boolean accept(File pathname) {
-                return pathname.isFile();
-            }
-        });
 
-        for (File file : files) {
-            baseline.indexarDocumentos(file, fconfig);
+        File directory = new File(args[0]);
+
+        while (true) {
+            files = directory.listFiles(new FileFilter() {
+                @Override
+                public boolean accept(File pathname) {
+                    return pathname.isFile();
+                }
+            });
+
+            if (files.length > 0) {
+                for (File file : files) {
+                    baseline.indexarDocumentos(file, fconfig);
+                    Files.move(Paths.get(file.getAbsolutePath()), Paths.get("P3/IndexedDocuments/" + file.getName()),
+                            StandardCopyOption.REPLACE_EXISTING);
+                }
+            }
+
         }
 
-        baseline.close();
+        // baseline.close();
     }
 
     // Método para configurar el indice.
     public void configurarIndice(Analyzer analyzer, Similarity similarity) throws IOException {
         IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
         iwc.setSimilarity(similarity);
-        iwc.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
+        iwc.setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
 
         Directory dir = FSDirectory.open(Paths.get("./P3/index"));
 
@@ -126,7 +137,7 @@ public class IndiceSimple {
 
             for (String author : authors) {
                 System.out.println(author);
-                doc.add(new TextField("Author", author,Field.Store.YES));
+                doc.add(new TextField("Author", author, Field.Store.YES));
             }
 
             doc.add(new TextField("Title", subdoc[HEADERS.Title], Field.Store.YES));
