@@ -38,8 +38,6 @@ import org.apache.lucene.document.Field;
 
 public class IndiceSimple {
 
-    String indexpath = "./index";
-    String docPath = "./datasets";
     boolean create = true;
     private IndexWriter writer;
     private DirectoryTaxonomyWriter facet_writer;
@@ -50,12 +48,11 @@ public class IndiceSimple {
         Similarity similarity = new ClassicSimilarity();
         IndiceSimple baseline = new IndiceSimple();
         IndiceSimple facet_index = new IndiceSimple();
-        baseline.configurarIndice(analyzer, similarity);
-        FacetsConfig fconfig = baseline.configurarIndice();
+        FacetsConfig fconfig;
 
         File[] files;
 
-        File directory = new File(args[0]);
+        File directory = new File("P3/datasets");
 
         while (true) {
             files = directory.listFiles(new FileFilter() {
@@ -66,16 +63,20 @@ public class IndiceSimple {
             });
 
             if (files.length > 0) {
+                fconfig = null;
+                baseline.configurarIndice(analyzer, similarity);
+                fconfig = baseline.configurarIndice();
                 for (File file : files) {
                     baseline.indexarDocumentos(file, fconfig);
                     Files.move(Paths.get(file.getAbsolutePath()), Paths.get("P3/IndexedDocuments/" + file.getName()),
                             StandardCopyOption.REPLACE_EXISTING);
                 }
+
+                baseline.close();
             }
 
         }
 
-        // baseline.close();
     }
 
     // Método para configurar el indice.
@@ -84,7 +85,7 @@ public class IndiceSimple {
         iwc.setSimilarity(similarity);
         iwc.setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
 
-        Directory dir = FSDirectory.open(Paths.get("./P3/index"));
+        Directory dir = FSDirectory.open(Paths.get("../index"));
 
         writer = new IndexWriter(dir, iwc);
     }
@@ -96,7 +97,7 @@ public class IndiceSimple {
     // Método para configurar el indice de las facetas
     public FacetsConfig configurarIndice() throws IOException {
         FacetsConfig fconfig = new FacetsConfig();
-        Directory dir = FSDirectory.open(Paths.get("./P3/facets"));
+        Directory dir = FSDirectory.open(Paths.get("../facets"));
 
         facet_writer = new DirectoryTaxonomyWriter(dir);
         fconfig.setMultiValued("Author", true);
